@@ -1,11 +1,15 @@
 import sys
 
+from vault import init_vault
+
 args = sys.argv[1:]
 
 if 1 <= len(args) <= 2:
     if len(args) == 1:
         if args[0] == 'init':
-            pass
+            master_password = input('\nEnter new key: ')
+            init_vault(master_password)
+            print('Vault initialized')
         elif args[0] in ('add', 'get'):
             print("Service must be specified after '{}'".format(args[0]))
         else:

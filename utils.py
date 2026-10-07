@@ -9,6 +9,9 @@ def generate_random_base64(length: int) -> str:
     random_bytes = secrets.token_bytes(length)
     return base64.b64encode(random_bytes).decode('ascii')
 
+def encode_base64(s: bytes) -> str:
+    return base64.b64encode(s).decode('ascii')
+
 def decode_base64(s: str) -> bytes:
     return base64.b64decode(s)
 
