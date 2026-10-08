@@ -41,3 +41,30 @@ def init_vault(
     file = open('./vault.json', 'w', encoding='utf-8')
     json.dump(vault, file, indent=4)
     file.close()
+
+def add_password(master_password: str, service: str) -> str:
+    file = open('./vault.json', 'r+', encoding='utf-8')
+    vault = json.load(file)
+    key = derive_key(master_password.encode(),
+                     decode_base64(vault['kdf']['salt']),
+                     vault['kdf']['time_cost'],
+                     vault['kdf']['memory_cost'],
+                     vault['kdf']['parallelism'],
+                     vault['kdf']['hash_len'])
+    nonce = vault['encryption']['nonce']
+    plaintext = decrypt(decode_base64(vault['ciphertext']), key, decode_base64(nonce))
+    entries = json.loads(plaintext)
+    if service in entries['entries']:
+        return "Password for '{}' already exists".format(service)
+    password = generate_password()
+    entries['entries'][service] = password
+    plaintext = json.dumps(entries).encode('utf-8')
+    new_nonce = generate_random_base64(12)
+    vault['encryption']['nonce'] = new_nonce
+    ciphertext = encrypt(plaintext, key, decode_base64(new_nonce))
+    vault['ciphertext'] = encode_base64(ciphertext)
+    file.seek(0)
+    json.dump(vault, file, indent=4)
+    file.truncate()
+    file.close()
+    return "Password for '{}' added".format(service)

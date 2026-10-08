@@ -1,6 +1,6 @@
 import sys
 
-from vault import init_vault
+from vault import init_vault, add_password
 
 args = sys.argv[1:]
 
@@ -16,7 +16,9 @@ if 1 <= len(args) <= 2:
             print('Unknown argument: {}'.format(args[0]))
     elif args[0] == 'add':
         service = args[1]
-        pass
+        master_password = input('\nEnter key: ')
+        add_result = add_password(master_password, service)
+        print(add_result)
     elif args[0] == 'get':
         service = args[1]
         pass
