@@ -68,3 +68,21 @@ def add_password(master_password: str, service: str) -> str:
     file.truncate()
     file.close()
     return "Password for '{}' added".format(service)
+
+def get_password(master_password: str, service: str) -> str:
+    file = open('./vault.json', encoding='utf-8')
+    vault = json.load(file)
+    file.close()
+    key = derive_key(master_password.encode(),
+                     decode_base64(vault['kdf']['salt']),
+                     vault['kdf']['time_cost'],
+                     vault['kdf']['memory_cost'],
+                     vault['kdf']['parallelism'],
+                     vault['kdf']['hash_len'])
+    nonce = vault['encryption']['nonce']
+    plaintext = decrypt(decode_base64(vault['ciphertext']), key, decode_base64(nonce))
+    entries = json.loads(plaintext)
+    if service in entries['entries']:
+        return entries['entries'][service]
+    else:
+        return "Password for '{}' not found".format(service)
