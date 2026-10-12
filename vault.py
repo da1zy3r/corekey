@@ -55,8 +55,30 @@ def add_password(master_password: str, service: str) -> str:
     plaintext = decrypt(decode_base64(vault['ciphertext']), key, decode_base64(nonce))
     entries = json.loads(plaintext)
     if service in entries['entries']:
+        file.close()
         return "Password for '{}' already exists".format(service)
-    password = generate_password()
+    password_options = {}
+    while True:
+        password_length = input('Password length [20]: ').strip()
+        if not password_length:
+            break
+        if password_length.isdigit():
+            if int(password_length) >= 8:
+                password_options['length'] = int(password_length)
+                break
+            else:
+                print('Password length must be at least 8')
+        else:
+            print('Password length must be a positive integer')
+    include_digits = ask_yes_no('Include digits? [Y/n]: ', True)
+    password_options['include_digits'] = include_digits
+    include_special_chars = ask_yes_no('Include special chars? [Y/n]: ', True)
+    password_options['include_special_chars'] = include_special_chars
+    if include_special_chars:
+        special_chars = input('Special chars [!@#$%^&*]: ').strip()
+        if special_chars:
+            password_options['special_chars'] = special_chars
+    password = generate_password(**password_options)
     entries['entries'][service] = password
     plaintext = json.dumps(entries).encode('utf-8')
     new_nonce = generate_random_base64(12)

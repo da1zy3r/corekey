@@ -18,17 +18,20 @@ def decode_base64(s: str) -> bytes:
 def generate_password(
         length: int = 20,
         include_digits: bool = True,
-        include_hash: bool = True,
-        include_dollar: bool = True
+        include_special_chars: bool = True,
+        special_chars: str = '!@#$%^&*'
 ) -> str:
     alphabet = string.ascii_letters
+    required_chars = [secrets.choice(string.ascii_lowercase), secrets.choice(string.ascii_uppercase)]
     if include_digits:
+        required_chars.append(secrets.choice(string.digits))
         alphabet += string.digits
-    if include_hash:
-        alphabet += '#'
-    if include_dollar:
-        alphabet += '$'
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+    if include_special_chars:
+        required_chars.append(secrets.choice(special_chars))
+        alphabet += special_chars
+    password = required_chars + [secrets.choice(alphabet) for _ in range(length - len(required_chars))]
+    secrets.SystemRandom().shuffle(password)
+    return ''.join(password)
 
 def encrypt(plaintext: bytes, key: bytes, nonce: bytes) -> bytes:
     aes = AESGCM(key)
@@ -55,3 +58,15 @@ def derive_key(
         hash_len=hash_len,
         type=Type.ID
     )
+
+def ask_yes_no(prompt: str, default: bool) -> bool:
+    while True:
+        answer = input(prompt).strip().lower()
+        if not answer:
+            return default
+        elif answer in ('y', 'yes'):
+            return True
+        elif answer in ('n', 'no'):
+            return False
+        else:
+            print("Invalid input. Enter 'y' or 'n'")
