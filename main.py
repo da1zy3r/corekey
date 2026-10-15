@@ -1,6 +1,6 @@
 import sys
 
-from vault import init_vault, add_password, get_password
+from vault import init_vault, add_password, get_password, get_list
 
 args = sys.argv[1:]
 
@@ -10,6 +10,15 @@ if 1 <= len(args) <= 2:
             master_password = input('\nEnter new key: ')
             init_vault(master_password)
             print('Vault initialized')
+        elif args[0] == 'list':
+            master_password = input('\nEnter key: ')
+            services = get_list(master_password)
+            if len(services) == 0:
+                print('No services added')
+            else:
+                print('Saved services:')
+                for service in services:
+                    print('- {}'.format(service))
         elif args[0] in ('add', 'get'):
             print("Service must be specified after '{}'".format(args[0]))
         else:
