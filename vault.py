@@ -1,5 +1,7 @@
 import json
 
+import pyperclip
+
 from utils import *
 
 def init_vault(
@@ -105,6 +107,7 @@ def get_password(master_password: str, service: str) -> str:
     plaintext = decrypt(decode_base64(vault['ciphertext']), key, decode_base64(nonce))
     entries = json.loads(plaintext)
     if service in entries['entries']:
-        return entries['entries'][service]
+        pyperclip.copy(entries['entries'][service])
+        return "Password for '{}' copied to clipboard".format(service)
     else:
         return "Password for '{}' not found".format(service)
