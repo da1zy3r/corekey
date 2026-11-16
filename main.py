@@ -10,6 +10,9 @@ def cmd_init(args):
 def cmd_list(args):
     master_password = input('\nEnter key: ')
     services = get_list(master_password)
+    if type(services) == str:
+        print(services)
+        return
     if not services:
         print('No services added')
     else:

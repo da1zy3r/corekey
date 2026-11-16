@@ -4,6 +4,8 @@ import pyperclip
 
 from utils import *
 
+VAULT_VERSION = 1
+
 def init_vault(
         master_password: str,
         time_cost: int = 3,
@@ -12,6 +14,7 @@ def init_vault(
         hash_len: int = 32
 ) -> None:
     vault = {
+        'version': VAULT_VERSION,
         'kdf': {
             'algorithm': 'argon2id',
             'salt': '',
@@ -47,6 +50,9 @@ def init_vault(
 def add_password(master_password: str, service: str) -> str:
     file = open('./vault.json', 'r+', encoding='utf-8')
     vault = json.load(file)
+    check_version_result = check_version(vault['version'])
+    if check_version_result:
+        return check_version_result
     key = derive_key(master_password.encode(),
                      decode_base64(vault['kdf']['salt']),
                      vault['kdf']['time_cost'],
@@ -97,6 +103,9 @@ def get_password(master_password: str, service: str) -> str:
     file = open('./vault.json', encoding='utf-8')
     vault = json.load(file)
     file.close()
+    check_version_result = check_version(vault['version'])
+    if check_version_result:
+        return check_version_result
     key = derive_key(master_password.encode(),
                      decode_base64(vault['kdf']['salt']),
                      vault['kdf']['time_cost'],
@@ -112,10 +121,13 @@ def get_password(master_password: str, service: str) -> str:
     else:
         return "Password for '{}' not found".format(service)
 
-def get_list(master_password: str) -> list[str]:
+def get_list(master_password: str) -> list[str] | str:
     file = open('./vault.json', encoding='utf-8')
     vault = json.load(file)
     file.close()
+    check_version_result = check_version(vault['version'])
+    if check_version_result:
+        return check_version_result
     key = derive_key(master_password.encode(),
                      decode_base64(vault['kdf']['salt']),
                      vault['kdf']['time_cost'],
@@ -126,3 +138,8 @@ def get_list(master_password: str) -> list[str]:
     plaintext = decrypt(decode_base64(vault['ciphertext']), key, decode_base64(nonce))
     entries = json.loads(plaintext)
     return entries['entries'].keys()
+
+def check_version(version: int) -> str:
+    if version != VAULT_VERSION:
+        return 'Unsupported vault version'
+    return ''
